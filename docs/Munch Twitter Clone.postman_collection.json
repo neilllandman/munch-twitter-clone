@@ -1,0 +1,260 @@
+{
+	"info": {
+		"_postman_id": "f62bb334-32ea-4352-864a-c8bcd62ed2a7",
+		"name": "Munch Twitter Clone",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "42331644"
+	},
+	"item": [
+		{
+			"name": "Health check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/healthz",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"healthz"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{EMAIL}}\",\n    \"username\": \"{{USERNAME}}\",\n    \"password\": \"{{PASSWORD}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/auth/register",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login via username",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"{{USERNAME}}\",\n    \"password\": \"{{PASSWORD}}\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/auth/login",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login via email",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{EMAIL}}\",\n    \"password\": \"{{PASSWORD}}\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/auth/login",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Tweet",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{BEARER_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"content\": \"Hey @bob\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/tweets",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"tweets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Feed",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{BEARER_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/my-feed",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"my-feed"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Tweets",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{BEARER_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3IiOnsiaWQiOjMzLCJlbWFpbCI6ImVsbGllQGV4YW1wbGUub3JnIiwidXNlcm5hbWUiOiJlbGxpZSJ9LCJzdWIiOjMzLCJpYXQiOjE3NDM3NjA2NTF9.HDcBJFhlqOX2MaI70AftWqA5eZNtVJQZC4-leRT-hpYP7LgBo9hV7Vq3Oap_hyMZzOitsKlQ715xGBeHJ-_LMo5M8w2_Pld-MgJ5mRw0O7An8_0l5ifIMDIGyUXHTiOcfX3KiyXx-7s5ii-uMB5z7fQvjvLlcuXyQiPL2duMCX3HfUdJc4oeHsqM8jlzeJ-ZWH9gr6SftwRzpAOZVYvc7xFuAVlTRiDOru7sM-R9JSRDT7H_0hdao3iRy0b5znnrrCWlG0nuoFdtn66QnqCN-W8N3rcGb43VxuAB10fTiukJWkk_RpTsxeuHGVutXvKQe8OVaVyHHpn-TtL8WfwJqw",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{BASE_URL}}/tweets",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"tweets"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BEARER_TOKEN",
+			"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3IiOnsiaWQiOjEsImVtYWlsIjoiZWxsaWVAZXhhbXBsZS5vcmciLCJ1c2VybmFtZSI6ImVsbGllIn0sInN1YiI6MSwiaWF0IjoxNzQzNzY1MDc3fQ.icp-m3p6ARakXw3IeTZEUHWEwLiqh4Wf2PyN-0meFVRNhF9V1_2s_rNFz045PQeNq_A4UA2y0mbtBayqqO6UP0ISS9B_ZW3oQt7dR75pwAPhlskiTgl5Wzeh0w5onvPM6s5l9-IzEbzlLGcKG8s2RDOuBxm50C6dYiq9vk20hjxSpT5uPOR7-q3T-pmiUXn7WtO9G4qzpQsJrsQ6_JPYcWAT1MQnIlfT63QlRBO8bGKUBRFbv0j5hA8W9uzQy3U-FQPqZVFemSgmoWPC1HP-BEnvlTBlGGlsCaGV0d7jG15E8HMIYNxlFlhCuyL1t-QDm6hO8DTm6iOHtxujfsBpUg",
+			"type": "string"
+		},
+		{
+			"key": "BASE_URL",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "USERNAME",
+			"value": "ellie",
+			"type": "string"
+		},
+		{
+			"key": "EMAIL",
+			"value": "ellie@example.org",
+			"type": "string"
+		},
+		{
+			"key": "PASSWORD",
+			"value": "ellie@password",
+			"type": "string"
+		}
+	]
+}
