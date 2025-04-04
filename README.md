@@ -64,3 +64,20 @@ $ npm run db:seed:all
 ```
 
 This command will add users, tweets and tagged users.
+
+### Routes
+
+A postman collection is included under docs [here](https://github.com/neilllandman/munch-twitter-clone/blob/main/docs/Munch%20Twitter%20Clone.postman_collection.json).
+
+```
+└── /
+    ├── healthz (GET, HEAD)
+    ├── auth/
+    │   ├── register (POST)
+    │   ├── login (POST)
+    │   └── user (GET, HEAD)
+    ├── users/
+    │   └── :id
+    │       └── /tweets (GET, HEAD)
+    ├── my-feed (GET, HEAD)
+    └── tweets (GET, HEAD, POST)```
