@@ -12,7 +12,7 @@ services:
     ports:
       - '3000:3000'
     stdin_open: true
-    command: "sh -c 'npm i && npm run start:dev'"
+    command: "sh -c 'npm i && npm run db:migrate:dev && npm run start:dev'"
     environment:
       DB_HOST: postgres-service
       DB_PORT: 5432
