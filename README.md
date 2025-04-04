@@ -12,7 +12,7 @@ The app can be run using either `docker compose` (recommended) or running the se
 The docker compose file includes a postgreSQL database server and should work out of the box with the default values:
 
 ```sh
-$ docker compose up
+docker compose up
 ```
 
 ### Using npm (node v22 or higher required)
@@ -22,32 +22,32 @@ If you prefer not using docker, set up the .env file correctly and use npm.
 If you do not already have a database server running, `docker compose` can still be used for that:
 
 ```sh
-$ docker compose up postgres-service
+docker compose up postgres-service
 ```
 
 - Copy .env.example to .env and set up values
 
  ```sh
-$ cp .env.example .env
+cp .env.example .env
  ```
 
 - Run migrations:
 
  ```sh
- $ npm run db:migrate:dev
+ npm run db:migrate:dev
  ```
 
  - Start the development server:
 
  ```sh
- $ npm run start:dev
+ npm run start:dev
 ```
 
 
 ### Check if service is reachable:
 
 ```sh
-$ curl http://localhost:3000/healthz
+curl http://localhost:3000/healthz
 ``` 
 Expected result:
 ```json
@@ -60,7 +60,7 @@ Expected result:
 
 To add some test data to the database, run
 ```sh
-$ npm run db:seed:all
+npm run db:seed:all
 ```
 
 ### Code compliance
@@ -69,7 +69,7 @@ $ npm run db:seed:all
 
 
 ```sh
-$ npm run test
+npm run test
 ```
 
 ##### Formatting
@@ -77,13 +77,13 @@ $ npm run test
 Run
 
 ```sh
-$ npm run lint:check
+npm run lint:check
 ```
 to check formatting and 
 
 
 ```sh
-$ npm run lint
+npm run lint
 ```
 
 to fix.
