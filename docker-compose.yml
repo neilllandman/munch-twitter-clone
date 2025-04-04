@@ -1,0 +1,37 @@
+services:
+  twitter-clone:
+    user: node
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        ARG_NODE_ENV: development
+    tty: true
+    volumes:
+      - './:/app'
+    ports:
+      - '3000:3000'
+    stdin_open: true
+    command: "sh -c 'npm i && npm run start:dev'"
+    environment:
+      DB_HOST: postgres-service
+      DB_PORT: 5432
+      APP_PORT: 3000
+      APP_HOST: '0.0.0.0'
+
+  postgres-service:
+    image: postgres:17.4
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: twitter_clone
+    volumes:
+      - twitter_clone_db_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+volumes:
+  twitter_clone_db_data:
+    driver: local
