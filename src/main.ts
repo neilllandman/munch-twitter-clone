@@ -30,7 +30,13 @@ export async function bootstrap() {
   });
 
   // connect to the database
-  await sequelize.authenticate();
+  try {
+    await sequelize.authenticate();
+    logger.debug('Database connection established successfully.');
+  } catch (error) {
+    logger.error(`Unable to connect to the database: ${error}`, error);
+    process.exit(1);
+  }
 
   // register routes
   await new AppController(app).register();

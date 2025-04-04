@@ -1,6 +1,6 @@
 # Munch Twitter Clone
 
-Simple twitter clone built with Fastify, TypeScript, and PostgreSQL.
+Simple twitter clone built with Fastify, TypeScript, and PostgreSQL. The file structure is set up similar to that of [Nestjs](https://docs.nestjs.com/).
 
 ## Development Quickstart
 
@@ -69,15 +69,22 @@ This command will add users, tweets and tagged users.
 
 A postman collection is included under docs [here](https://github.com/neilllandman/munch-twitter-clone/blob/main/docs/Munch%20Twitter%20Clone.postman_collection.json).
 
+```ts
+/
+├── healthz (GET, HEAD)
+├── auth/
+│   ├── register (POST)
+│   ├── login (POST)
+│   └── user (GET, HEAD)
+├── users/
+│   └── :id
+│       └── /tweets (GET, HEAD)
+├── my-feed (GET, HEAD)
+└── tweets (GET, HEAD, POST)```
+
 ```
-└── /
-    ├── healthz (GET, HEAD)
-    ├── auth/
-    │   ├── register (POST)
-    │   ├── login (POST)
-    │   └── user (GET, HEAD)
-    ├── users/
-    │   └── :id
-    │       └── /tweets (GET, HEAD)
-    ├── my-feed (GET, HEAD)
-    └── tweets (GET, HEAD, POST)```
+
+## Future considerations
+- Expire JWT tokens and add refresh functionality
+- Use AWS secrets manager (or similar) to store secrets and signing files
+- Paginate results of feeds

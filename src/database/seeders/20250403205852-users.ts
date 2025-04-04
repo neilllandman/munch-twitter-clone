@@ -1,7 +1,6 @@
 import { hashSync } from 'bcryptjs';
 import { QueryInterface } from 'sequelize';
 
-// TODO: Write a seed file to populate the database with initial data
 export default {
   async up(queryInterface: QueryInterface) {
     await queryInterface.bulkInsert(

@@ -5,7 +5,7 @@ import { AuthService } from './auth.service';
 import { loginRouteOpts, registrationRouteOpts } from './route-options';
 import { AuthResponse } from './dtos/auth.response';
 import { authMiddleware } from './auth.middleware';
-
+import { logger } from '../shared/utils/logger';
 export class AuthController implements ControllerInterface {
   authService: AuthService;
 
@@ -23,6 +23,7 @@ export class AuthController implements ControllerInterface {
       );
       return reply.send(user);
     } catch (err) {
+      logger.error(err);
       return reply.send(err);
     }
   }
@@ -64,7 +65,7 @@ export class AuthController implements ControllerInterface {
 
       return reply.send(response);
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       reply.status(500).send({
         error: 'Internal server error',
       });
@@ -82,27 +83,32 @@ export class AuthController implements ControllerInterface {
   ) {
     const { email, password, username } = req.body;
 
-    const user = await this.authService.getUserFromCredentials({
-      username,
-      email,
-    });
+    try {
+      const user = await this.authService.getUserFromCredentials({
+        username,
+        email,
+      });
 
-    if (!user) {
-      return reply.status(401).send({ error: 'Invalid credentials' });
+      if (!user) {
+        return reply.status(401).send({ error: 'Invalid credentials' });
+      }
+
+      const isValid = await compare(password, user.password);
+      if (!isValid) {
+        return reply.status(401).send({ error: 'Invalid credentials' });
+      }
+
+      const token = this.authService.generateToken(user);
+
+      const response: AuthResponse = this.authService.buildAuthResponse(
+        token,
+        user,
+      );
+      return reply.send(response);
+    } catch (err) {
+      logger.error(err);
+      return reply.status(500).send({ error: 'Internal server error' });
     }
-
-    const isValid = await compare(password, user.password);
-    if (!isValid) {
-      return reply.status(401).send({ error: 'Invalid credentials' });
-    }
-
-    const token = this.authService.generateToken(user);
-
-    const response: AuthResponse = this.authService.buildAuthResponse(
-      token,
-      user,
-    );
-    return reply.send(response);
   }
 
   /**

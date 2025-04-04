@@ -33,8 +33,15 @@ export class TweetsController implements ControllerInterface {
     request: FastifyRequest,
     reply: FastifyReply,
   ): Promise<void> {
-    const tweets = await this.tweetsService.getAllTweets(request);
-    reply.send(tweets);
+    try {
+      const tweets = await this.tweetsService.getAllTweets(request);
+      reply.send(tweets);
+    } catch (error) {
+      logger.error(`Error fetching all tweets: ${error}`);
+      reply.status(500).send({
+        error: 'Internal server error',
+      });
+    }
   }
 
   /**
@@ -46,8 +53,15 @@ export class TweetsController implements ControllerInterface {
   ): Promise<void> {
     const userId = request.params.id;
 
-    const tweets = await this.tweetsService.getUserTweets(userId, request);
-    reply.send(tweets);
+    try {
+      const tweets = await this.tweetsService.getUserTweets(userId, request);
+      reply.send(tweets);
+    } catch (error) {
+      logger.error(`Error fetching user tweets: ${error}`);
+      reply.status(500).send({
+        error: 'Internal server error',
+      });
+    }
   }
 
   /**
