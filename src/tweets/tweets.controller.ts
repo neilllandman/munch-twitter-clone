@@ -2,71 +2,60 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { ControllerInterface } from '../shared/interfaces/controller.interface';
 import { authMiddleware } from '../auth/auth.middleware';
 import { JwtToken } from '../auth/dtos/jwt-token';
-import { TaggedUser, Tweet } from '../database/models';
 import { createTweetRouteOpts } from './route-options';
-import { User } from '../database/models';
 
 import { logger } from '../shared/utils/logger';
-import { Op } from 'sequelize';
+import { TweetsService } from './tweets.service';
 
 export class TweetsController implements ControllerInterface {
+  private readonly tweetsService: TweetsService;
+
   constructor(private readonly app: FastifyInstance) {
-    // Constructor logic here
+    this.tweetsService = new TweetsService(app);
   }
 
+  /**
+   * Returns the tweets of the currently authenticated user including the
+   * tweets of the users where the authenticated user was tagged in.
+   */
   async myFeed(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const token: JwtToken = request.user as JwtToken;
     const id = token.sub;
 
-    const tweets = await Tweet.findAll({
-      where: {
-        [Op.or]: [{ userId: id }, { [`$taggedUsers.userId$`]: id }],
-      },
-      attributes: ['id', 'content', 'createdAt', 'updatedAt'],
-      order: [['createdAt', 'DESC']],
-      include: [
-        { model: User, as: 'user', attributes: ['id', 'username', 'email'] },
-        { model: TaggedUser, as: 'taggedUsers', attributes: [] },
-      ],
-    });
+    const tweets = await this.tweetsService.getFeed(id, request);
     reply.send(tweets);
   }
 
+  /**
+   * Returns all tweets in the database.
+   */
   async getAllTweets(
     request: FastifyRequest,
     reply: FastifyReply,
   ): Promise<void> {
-    // Use id to order: Results will be the same as using createdAt
-    // since it's auto incrementing, but more efficient
-    const tweets = await Tweet.findAll({
-      attributes: ['id', 'content', 'createdAt', 'updatedAt'],
-      order: [['id', 'DESC']],
-      include: [
-        {
-          model: User,
-          as: 'user',
-          attributes: ['id', 'username', 'email'],
-        },
-      ],
-    });
+    const tweets = await this.tweetsService.getAllTweets(request);
     reply.send(tweets);
   }
 
+  /**
+   * Get tweets of a specific user.
+   */
   async getUserTweets(
     request: FastifyRequest<{ Params: { id: number } }>,
     reply: FastifyReply,
   ): Promise<void> {
     const userId = request.params.id;
 
-    const tweets = await Tweet.findAll({
-      where: { userId },
-      attributes: ['id', 'content', 'createdAt', 'updatedAt'],
-      order: [['createdAt', 'DESC']],
-      include: [TaggedUser],
-    });
+    const tweets = await this.tweetsService.getUserTweets(userId, request);
     reply.send(tweets);
   }
 
+  /**
+   * Handles the creation of a new tweet.
+   *
+   * Creates a new tweet. If the tweet content contains mentions (words starting with '@'),
+   * it identifies the mentioned users and associates them with the tweet.
+   */
   async createTweet(
     request: FastifyRequest<{ Body: { content: string } }>,
     reply: FastifyReply,
@@ -76,43 +65,16 @@ export class TweetsController implements ControllerInterface {
 
     const { content } = request.body;
 
-    const transaction = await Tweet.sequelize.transaction();
+    // Start database transaction
 
     try {
-      const tweet = await Tweet.create(
-        {
-          userId: userId,
-          content,
-        },
-        { transaction },
-      );
+      const tweet = await this.tweetsService.createTweet({
+        content,
+        userId,
+      });
 
-      const tags = content.split(' ').filter((word) => word.startsWith('@'));
-
-      if (tags.length > 0) {
-        const users = await User.findAll({
-          where: {
-            id: {
-              [Op.ne]: userId,
-            },
-            username: tags.map((tag) => tag.substring(1)),
-          },
-          attributes: ['id'],
-        });
-
-        if (users.length > 0) {
-          const taggedUsers = users.map((user) => ({
-            userId: user.id,
-            tweetId: tweet.id,
-          }));
-          await TaggedUser.bulkCreate(taggedUsers, { transaction });
-        }
-      }
-
-      await transaction.commit();
       return reply.status(201).send(tweet);
     } catch (error) {
-      await transaction.rollback();
       logger.error(`Error creating tweet: ${error}`);
       return reply.status(500).send({
         error: 'Internal server error',
@@ -120,7 +82,19 @@ export class TweetsController implements ControllerInterface {
     }
   }
 
+  /**
+   * Registers the routes for the tweets module.
+   *
+   * This method sets up the following routes:
+   * - `GET /users/:id/tweets`: Retrieves tweets for a specific user. Requires authentication.
+   * - `GET /my-feed`: Retrieves the authenticated user's feed. Requires authentication.
+   * - `GET /tweets`: Retrieves all tweets. Requires authentication.
+   * - `POST /tweets`: Creates a new tweet. Requires authentication and adheres to the options defined in `createTweetRouteOpts`.
+   *
+   * Each route uses the `authMiddleware` for pre-validation to ensure that the user is authenticated.
+   */
   async register() {
+    // Need to use `bind` to ensure `this` context is correct
     this.app.get(
       '/users/:id/tweets',
       { preValidation: authMiddleware },

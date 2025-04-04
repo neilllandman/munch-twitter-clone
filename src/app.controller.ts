@@ -9,6 +9,7 @@ export class AppController implements ControllerInterface {
   }
 
   async register(): Promise<void> {
+    // Need to use `bind` to ensure `this` context is correct
     this.app.get('/healthz', this.healthCheck.bind(this));
   }
 }

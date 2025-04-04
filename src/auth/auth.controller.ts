@@ -1,12 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { compare } from 'bcryptjs';
 import { ControllerInterface } from '../shared/interfaces/controller.interface';
-import { User } from '../database/models';
 import { AuthService } from './auth.service';
 import { loginRouteOpts, registrationRouteOpts } from './route-options';
-import { JwtToken } from './dtos/jwt-token';
-import { LoginResponse } from './dtos/login.response';
-import { RegisterResponse } from './dtos/register.response';
+import { AuthResponse } from './dtos/auth.response';
 import { authMiddleware } from './auth.middleware';
 
 export class AuthController implements ControllerInterface {
@@ -21,17 +18,13 @@ export class AuthController implements ControllerInterface {
    */
   async user(req: FastifyRequest, reply: FastifyReply) {
     try {
-      const token = req.user as JwtToken;
-      const id = token.sub;
-      const user = await User.findOne({
-        where: { id },
-        attributes: ['id', 'email', 'username', 'createdAt', 'updatedAt'],
-      });
+      const user = this.authService.getAuthenticatedUser(
+        req as FastifyRequest<{ Headers: { authorization: string } }>,
+      );
       return reply.send(user);
     } catch (err) {
       return reply.send(err);
     }
-    return;
   }
 
   /**
@@ -57,12 +50,14 @@ export class AuthController implements ControllerInterface {
         });
       }
 
-      const hashedPassword = await this.authService.encryptPassword(password);
-      const userDetails = { username, email, password: hashedPassword };
-      const newUser = await User.create(userDetails);
+      const newUser = await this.authService.registerUser({
+        username,
+        email,
+        plainTextPassword: password,
+      });
       const token = this.authService.generateToken(newUser);
 
-      const response: RegisterResponse = this.buildLoginResponse(
+      const response: AuthResponse = this.authService.buildAuthResponse(
         token,
         newUser,
       );
@@ -77,7 +72,7 @@ export class AuthController implements ControllerInterface {
   }
 
   /**
-   *
+   * Logs in a user and returns an authentication token.
    */
   async login(
     req: FastifyRequest<{
@@ -103,14 +98,24 @@ export class AuthController implements ControllerInterface {
 
     const token = this.authService.generateToken(user);
 
-    const response: LoginResponse = this.buildLoginResponse(token, user);
+    const response: AuthResponse = this.authService.buildAuthResponse(
+      token,
+      user,
+    );
     return reply.send(response);
   }
 
   /**
-   * Registers the routes for auth operations.
+   * Registers authentication-related routes for the application.
+   *
+   * This method sets up the following routes:
+   * - POST `/auth/register`: Handles user registration.
+   * - POST `/auth/login`: Handles user login.
+   * - GET `/auth/user`: Retrieves the authenticated user's information. Requires authentication.
+   *
    */
   async register() {
+    // Need to use `bind` to ensure `this` context is correct
     this.app.post(
       '/auth/register',
       registrationRouteOpts,
@@ -124,21 +129,5 @@ export class AuthController implements ControllerInterface {
       { preValidation: authMiddleware },
       this.user.bind(this),
     );
-  }
-
-  /**
-   *
-   */
-  private buildLoginResponse(token: string, user: User): LoginResponse {
-    return {
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
-    };
   }
 }
