@@ -55,3 +55,12 @@ Expected result:
   "status": "ok"
 }
 ```
+
+### Test Data
+
+To add some test data to the database, run
+```sh
+$ npm run db:seed:all
+```
+
+This command will add users, tweets and tagged users.

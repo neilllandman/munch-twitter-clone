@@ -14,7 +14,8 @@
     "test": "jest",
     "sequelize-dev": "sequelize-cli --config src/database/config/config.js",
     "db:migrate": "sequelize-cli db:migrate",
-    "db:migrate:dev": "npm run build && npm run db:migrate"
+    "db:migrate:dev": "npm run build && npm run db:migrate",
+    "db:seed:all": "npm run build && npm run db:seed:all"
   },
   "dependencies": {
     "@fastify/jwt": "^9.1.0",
