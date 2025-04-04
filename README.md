@@ -63,6 +63,31 @@ To add some test data to the database, run
 $ npm run db:seed:all
 ```
 
+### Code compliance
+
+##### Unit testing
+
+
+```sh
+$ npm run test
+```
+
+##### Formatting
+
+Run
+
+```sh
+$ npm run lint:check
+```
+to check formatting and 
+
+
+```sh
+$ npm run lint
+```
+
+to fix.
+
 This command will add users, tweets and tagged users.
 
 ### Routes
@@ -88,3 +113,4 @@ A postman collection is included under docs [here](https://github.com/neilllandm
 - Expire JWT tokens and add refresh functionality
 - Use AWS secrets manager (or similar) to store secrets and signing files
 - Paginate results of feeds
+- Run lint checks and unit tests as pre-commit hook or add as github action when creating PR
