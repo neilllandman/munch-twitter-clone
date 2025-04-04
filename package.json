@@ -1,6 +1,9 @@
 {
-  "name": "munch-base",
+  "name": "munch-twitter-clone",
   "version": "1.0.0",
+  "author": "Neill Landman<neilllandman@gmail.com>",
+  "license": "NONE",
+  "description": "Simple twitter clone built with Fastify, TypeScript, and PostgreSQL",
   "main": "index.js",
   "scripts": {
     "build": "rimraf ./dist && npx --yes tsc -p tsconfig.build.json",
@@ -13,9 +16,6 @@
     "db:migrate": "sequelize-cli db:migrate",
     "db:migrate:dev": "npm run build && npm run db:migrate"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "@fastify/jwt": "^9.1.0",
     "bcryptjs": "^3.0.2",
