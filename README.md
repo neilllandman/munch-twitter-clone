@@ -12,7 +12,7 @@ The app can be run using either `docker compose` (recommended) or running the se
 The docker compose file includes a postgreSQL database server and should work out of the box with the default values:
 
 ```sh
-docker compose up
+$ docker compose up
 ```
 
 ### Using npm (node v22 or higher required)
@@ -22,7 +22,7 @@ If you prefer not using docker, set up the .env file correctly and use npm.
 If you do not already have a database server running, `docker compose` can still be used for that:
 
 ```sh
-docker compose up postgres-service
+$ docker compose up postgres-service
 ```
 
 - Copy .env.example to .env and set up values
