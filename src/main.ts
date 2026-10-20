@@ -34,7 +34,7 @@ export async function bootstrap() {
     await sequelize.authenticate();
     logger.debug('Database connection established successfully.');
   } catch (error) {
-    logger.error(`Unable to connect to the database: ${error}`, error);
+    logger.error({ err: error }, 'Unable to connect to the database');
     process.exit(1);
   }
 

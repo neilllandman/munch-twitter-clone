@@ -17,9 +17,8 @@ Tweet.init(
       primaryKey: true,
     },
     userId: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      unique: true,
       references: {
         model: 'users',
         key: 'id',

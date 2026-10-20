@@ -5,37 +5,41 @@ export default {
   async up(queryInterface: QueryInterface) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      await queryInterface.createTable('tagged_users', {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          primaryKey: true,
-        },
-        userId: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-          references: {
-            model: 'users',
-            key: 'id',
+      await queryInterface.createTable(
+        'tagged_users',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+          },
+          userId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+              model: 'users',
+              key: 'id',
+            },
+          },
+          tweetId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+              model: 'tweets',
+              key: 'id',
+            },
+          },
+          createdAt: {
+            type: DataTypes.DATE,
+            allowNull: false,
+          },
+          updatedAt: {
+            type: DataTypes.DATE,
+            allowNull: false,
           },
         },
-        tweetId: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-          references: {
-            model: 'tweets',
-            key: 'id',
-          },
-        },
-        createdAt: {
-          type: DataTypes.DATE,
-          allowNull: false,
-        },
-        updatedAt: {
-          type: DataTypes.DATE,
-          allowNull: false,
-        },
-      });
+        { transaction },
+      );
 
       await queryInterface.addIndex('tagged_users', ['userId'], {
         transaction,
@@ -43,9 +47,11 @@ export default {
       await queryInterface.addIndex('tagged_users', ['tweetId'], {
         transaction,
       });
+      await transaction.commit();
     } catch (_err) {
-      logger.error('Error creating tagged_users table', _err);
+      logger.error({ err: _err }, 'Error creating tagged_users table');
       await transaction.rollback();
+      throw _err;
     }
   },
 

@@ -8,6 +8,7 @@ describe('TweetsService', () => {
   let tweetsService: TweetsService;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     tweetsService = new TweetsService({} as any); // Mock FastifyInstance
   });
 
@@ -77,7 +78,7 @@ describe('TweetsService', () => {
         commit: jest.fn(),
         rollback: jest.fn(),
       };
-      const mockTweet = { id: 1, content: 'Hello @user', userId: 1 };
+      const mockTweet = { id: 1, content: 'Hello @user, (@user)!', userId: 1 };
       const mockUsers = [{ id: 2, username: 'user' }];
       const mockTaggedUsers = [{ userId: 2, tweetId: 1 }];
 
@@ -89,13 +90,13 @@ describe('TweetsService', () => {
       (TaggedUser.bulkCreate as jest.Mock).mockResolvedValue(mockTaggedUsers);
 
       const result = await tweetsService.createTweet({
-        content: 'Hello @user',
+        content: mockTweet.content,
         userId: 1,
       });
 
       expect(Tweet.sequelize.transaction).toHaveBeenCalled();
       expect(Tweet.create).toHaveBeenCalledWith(
-        { userId: 1, content: 'Hello @user' },
+        { userId: 1, content: mockTweet.content },
         { transaction: mockTransaction },
       );
       expect(User.findAll).toHaveBeenCalledWith({

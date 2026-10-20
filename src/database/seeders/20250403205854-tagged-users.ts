@@ -1,4 +1,5 @@
 import { QueryInterface } from 'sequelize';
+import { extractMentionedUsernames } from '../../shared/utils/mentions';
 
 export default {
   async up(queryInterface: QueryInterface) {
@@ -15,13 +16,10 @@ export default {
 
     tweets.forEach((tweet) => {
       const user = users.find((u) => u.id === tweet.userId);
-      const taggedUserNames = tweet.content.match(/@(\w+)/g);
+      const taggedUserNames = extractMentionedUsernames(tweet.content);
 
       const taggedUsers = users.filter((u) => {
-        const taggedUserName = taggedUserNames?.find(
-          (username: string) => username === `@${u.username}`,
-        );
-        return taggedUserName && u.id !== user.id;
+        return taggedUserNames.includes(u.username) && u.id !== user.id;
       });
       allTaggedUsers.push(
         ...taggedUsers.map((u) => {
