@@ -17,18 +17,16 @@ TaggedUser.init(
       primaryKey: true,
     },
     userId: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      unique: true,
       references: {
         model: 'users',
         key: 'id',
       },
     },
     tweetId: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      unique: true,
       references: {
         model: 'tweets',
         key: 'id',

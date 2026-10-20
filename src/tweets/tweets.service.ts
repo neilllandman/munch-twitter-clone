@@ -2,6 +2,7 @@ import { Op } from 'sequelize';
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import { TaggedUser, Tweet, User } from '../database/models';
 import { logger } from '../shared/utils/logger';
+import { extractMentionedUsernames } from '../shared/utils/mentions';
 
 export class TweetsService {
   /**
@@ -79,15 +80,15 @@ export class TweetsService {
         { transaction },
       );
 
-      const tags = content.split(' ').filter((word) => word.startsWith('@'));
+      const usernames = extractMentionedUsernames(content);
 
-      if (tags.length > 0) {
+      if (usernames.length > 0) {
         const users = await User.findAll({
           where: {
             id: {
               [Op.ne]: userId,
             },
-            username: tags.map((tag) => tag.substring(1)),
+            username: usernames,
           },
           attributes: ['id'],
         });
