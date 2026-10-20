@@ -1,8 +1,9 @@
-import { Op } from 'sequelize';
+import { literal, Op } from 'sequelize';
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import { TaggedUser, Tweet, User } from '../database/models';
 import { logger } from '../shared/utils/logger';
 import { extractMentionedUsernames } from '../shared/utils/mentions';
+import { TweetQuery } from './dtos/tweet-query';
 
 export class TweetsService {
   /**
@@ -10,22 +11,29 @@ export class TweetsService {
    */
   async getUserTweets(
     userId: number,
-    _request: FastifyRequest<{ Params: { id: number } }>,
+    request: FastifyRequest<{
+      Params: { id: number };
+      Querystring: TweetQuery;
+    }>,
   ) {
+    const { beforeId, limit = 25 } = request.query ?? {};
     return Tweet.findAll({
-      where: { userId },
+      where: { userId, ...(beforeId ? { id: { [Op.lt]: beforeId } } : {}) },
+      limit,
       attributes: ['id', 'content', 'createdAt', 'updatedAt'],
       order: [['id', 'DESC']],
-      include: [TaggedUser],
+      include: [{ model: TaggedUser, as: 'taggedUsers', separate: true }],
     });
   }
 
   /**
    * Returns all tweets in the database.
    */
-  async getAllTweets(_request: FastifyRequest) {
-    // TODO: consider using request.query to paginate the results
+  async getAllTweets(request: FastifyRequest<{ Querystring: TweetQuery }>) {
+    const { beforeId, limit = 25 } = request.query ?? {};
     return Tweet.findAll({
+      where: beforeId ? { id: { [Op.lt]: beforeId } } : {},
+      limit,
       attributes: ['id', 'content', 'createdAt', 'updatedAt'],
       order: [['id', 'DESC']],
       include: [
@@ -41,22 +49,29 @@ export class TweetsService {
    * Returns the tweets of the currently authenticated user including the
    * tweets of the users where the authenticated user was tagged in.
    */
-  async getFeed(id: number, _request: FastifyRequest) {
-    // TODO: consider using request.query to paginate the results
-
-    // Use id to order: Results will be the same as using
-    // createdAt since it is an auto incrementing field,
-    // but more efficient. Empty array for taggedUsers
-    // attributes since we don't need them attached.
+  async getFeed(
+    id: number,
+    request: FastifyRequest<{ Querystring: TweetQuery }>,
+  ) {
+    const { beforeId, limit = 25 } = request.query ?? {};
     return Tweet.findAll({
       where: {
-        [Op.or]: [{ userId: id }, { [`$taggedUsers.userId$`]: id }],
+        ...(beforeId ? { id: { [Op.lt]: beforeId } } : {}),
+        [Op.or]: [
+          { userId: id },
+          literal(`EXISTS (
+            SELECT 1 FROM "tagged_users" AS "mention"
+            WHERE "mention"."tweetId" = "Tweet"."id"
+              AND "mention"."userId" = $feedUserId
+          )`),
+        ],
       },
+      bind: { feedUserId: id },
+      limit,
       attributes: ['id', 'content', 'createdAt', 'updatedAt'],
       order: [['id', 'DESC']],
       include: [
         { model: User, as: 'user', attributes: ['id', 'username', 'email'] },
-        { model: TaggedUser, as: 'taggedUsers', attributes: [] },
       ],
     });
   }
@@ -91,6 +106,7 @@ export class TweetsService {
             username: usernames,
           },
           attributes: ['id'],
+          transaction,
         });
 
         if (users.length > 0) {

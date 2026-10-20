@@ -1,0 +1,680 @@
+{
+  "metadata": {
+    "date": "2026-10-20T08:04:01.050Z",
+    "node": "v22.23.1",
+    "cpus": 10,
+    "cpuModel": "13th Gen Intel(R) Core(TM) i7-13650HX",
+    "memoryGB": 7.603233337402344,
+    "original": "2dad917",
+    "preschema": "4042e80",
+    "current": "2b4dd87",
+    "dependencies": {
+      "fastify": "5.8.5",
+      "@fastify/jwt": "10.1.0",
+      "sequelize": "6.37.8",
+      "pg": "8.21.0"
+    },
+    "rounds": 3,
+    "duration": 2000,
+    "temp": "/tmp/munch-bench-DQFWkb",
+    "databases": {
+      "beforeDb": "bench_1792483440652_before",
+      "afterDb": "bench_1792483440652_after"
+    },
+    "data": {
+      "users": 1000,
+      "tweets": 100000,
+      "mentions": 71633
+    }
+  },
+  "results": [
+    {
+      "name": "original-default",
+      "route": "/tweets",
+      "concurrency": 2,
+      "medianRps": 0.6172298749936342,
+      "medianP50": 3239.254748000001,
+      "medianP95": 3239.254748000001,
+      "responseBytes": 34245691,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 0.5793389810819588,
+          "p50": 3451.837305000001,
+          "p95": 3451.837305000001,
+          "requests": 2,
+          "errors": 0,
+          "bytes": 34245691
+        },
+        {
+          "rps": 0.6233587886445195,
+          "p50": 3207.9864579999994,
+          "p95": 3207.9864579999994,
+          "requests": 2,
+          "errors": 0,
+          "bytes": 34245691
+        },
+        {
+          "rps": 0.6172298749936342,
+          "p50": 3239.254748000001,
+          "p95": 3239.254748000001,
+          "requests": 2,
+          "errors": 0,
+          "bytes": 34245691
+        }
+      ]
+    },
+    {
+      "name": "current-default",
+      "route": "/tweets",
+      "concurrency": 2,
+      "medianRps": 588.823606252613,
+      "medianP50": 3.1480929999997898,
+      "medianP95": 5.148941999999806,
+      "responseBytes": 8581,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 545.5460552190473,
+          "p50": 3.3813929999996617,
+          "p95": 5.614997000000585,
+          "requests": 1092,
+          "errors": 0,
+          "bytes": 8581
+        },
+        {
+          "rps": 588.823606252613,
+          "p50": 3.1480929999997898,
+          "p95": 5.148941999999806,
+          "requests": 1179,
+          "errors": 0,
+          "bytes": 8581
+        },
+        {
+          "rps": 736.7031093516688,
+          "p50": 2.551415999998426,
+          "p95": 3.6465839999982563,
+          "requests": 1475,
+          "errors": 0,
+          "bytes": 8581
+        }
+      ]
+    },
+    {
+      "name": "original-default",
+      "route": "/my-feed",
+      "concurrency": 2,
+      "medianRps": 11.52398059309427,
+      "medianP50": 173.59431100000074,
+      "medianP95": 191.17156299999988,
+      "responseBytes": 1758325,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 10.371770444836951,
+          "p50": 191.182668999998,
+          "p95": 212.57512199999837,
+          "requests": 22,
+          "errors": 0,
+          "bytes": 1758325
+        },
+        {
+          "rps": 11.52398059309427,
+          "p50": 169.47463800000332,
+          "p95": 191.17156299999988,
+          "requests": 24,
+          "errors": 0,
+          "bytes": 1758325
+        },
+        {
+          "rps": 11.54262084974336,
+          "p50": 173.59431100000074,
+          "p95": 185.71664299999975,
+          "requests": 24,
+          "errors": 0,
+          "bytes": 1758325
+        }
+      ]
+    },
+    {
+      "name": "current-default",
+      "route": "/my-feed",
+      "concurrency": 2,
+      "medianRps": 542.4099550602778,
+      "medianP50": 3.542273999999452,
+      "medianP95": 4.576489999999467,
+      "responseBytes": 8581,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 495.0427747803934,
+          "p50": 3.7496699999974226,
+          "p95": 5.434078999998746,
+          "requests": 991,
+          "errors": 0,
+          "bytes": 8581
+        },
+        {
+          "rps": 542.4099550602778,
+          "p50": 3.542273999999452,
+          "p95": 4.576489999999467,
+          "requests": 1086,
+          "errors": 0,
+          "bytes": 8581
+        },
+        {
+          "rps": 556.564284644905,
+          "p50": 3.473627999999735,
+          "p95": 4.51778199999535,
+          "requests": 1115,
+          "errors": 0,
+          "bytes": 8581
+        }
+      ]
+    },
+    {
+      "name": "original-default",
+      "route": "/users/1/tweets",
+      "concurrency": 2,
+      "medianRps": 0,
+      "medianP50": null,
+      "medianP95": null,
+      "responseBytes": 0,
+      "errors": 14945,
+      "runs": [
+        {
+          "rps": 0,
+          "p50": null,
+          "p95": null,
+          "requests": 4774,
+          "errors": 4774,
+          "bytes": 0
+        },
+        {
+          "rps": 0,
+          "p50": null,
+          "p95": null,
+          "requests": 4666,
+          "errors": 4666,
+          "bytes": 0
+        },
+        {
+          "rps": 0,
+          "p50": null,
+          "p95": null,
+          "requests": 5505,
+          "errors": 5505,
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "name": "current-default",
+      "route": "/users/1/tweets",
+      "concurrency": 2,
+      "medianRps": 535.7546257208056,
+      "medianP50": 3.5931629999977304,
+      "medianP95": 4.973625999999058,
+      "responseBytes": 9156,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 396.82360008641456,
+          "p50": 4.554239999997662,
+          "p95": 8.31640700000571,
+          "requests": 795,
+          "errors": 0,
+          "bytes": 9156
+        },
+        {
+          "rps": 535.7546257208056,
+          "p50": 3.5931629999977304,
+          "p95": 4.973625999999058,
+          "requests": 1072,
+          "errors": 0,
+          "bytes": 9156
+        },
+        {
+          "rps": 574.2847538946955,
+          "p50": 3.3237000000008265,
+          "p95": 4.433426000003237,
+          "requests": 1150,
+          "errors": 0,
+          "bytes": 9156
+        }
+      ]
+    },
+    {
+      "name": "original-equal-100",
+      "route": "/users/1/tweets?limit=100",
+      "concurrency": 8,
+      "medianRps": 0,
+      "medianP50": null,
+      "medianP95": null,
+      "responseBytes": 0,
+      "errors": 29518,
+      "runs": [
+        {
+          "rps": 0,
+          "p50": null,
+          "p95": null,
+          "requests": 9319,
+          "errors": 9319,
+          "bytes": 0
+        },
+        {
+          "rps": 0,
+          "p50": null,
+          "p95": null,
+          "requests": 10211,
+          "errors": 10211,
+          "bytes": 0
+        },
+        {
+          "rps": 0,
+          "p50": null,
+          "p95": null,
+          "requests": 9988,
+          "errors": 9988,
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "name": "current-equal-100",
+      "route": "/users/1/tweets?limit=100",
+      "concurrency": 8,
+      "medianRps": 326.7873241717898,
+      "medianP50": 23.554151999996975,
+      "medianP95": 32.50641000000178,
+      "responseBytes": 36813,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 313.6366967452924,
+          "p50": 24.247995999990962,
+          "p95": 32.71108799999638,
+          "requests": 633,
+          "errors": 0,
+          "bytes": 36813
+        },
+        {
+          "rps": 333.4626710997657,
+          "p50": 22.90700399999332,
+          "p95": 31.267737000001944,
+          "requests": 673,
+          "errors": 0,
+          "bytes": 36813
+        },
+        {
+          "rps": 326.7873241717898,
+          "p50": 23.554151999996975,
+          "p95": 32.50641000000178,
+          "requests": 658,
+          "errors": 0,
+          "bytes": 36813
+        }
+      ]
+    },
+    {
+      "name": "without-schemas",
+      "route": "/tweets?limit=25",
+      "concurrency": 8,
+      "medianRps": 1009.6230887338118,
+      "medianP50": 7.770641999988584,
+      "medianP95": 10.908396999991965,
+      "responseBytes": 8581,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 873.4529147839411,
+          "p50": 9.10650799999712,
+          "p95": 12.580983000007109,
+          "requests": 1752,
+          "errors": 0,
+          "bytes": 8581
+        },
+        {
+          "rps": 1009.6230887338118,
+          "p50": 7.770641999988584,
+          "p95": 10.908396999991965,
+          "requests": 2027,
+          "errors": 0,
+          "bytes": 8581
+        },
+        {
+          "rps": 1137.5190875092217,
+          "p50": 6.87922499999695,
+          "p95": 9.335011999995913,
+          "requests": 2282,
+          "errors": 0,
+          "bytes": 8581
+        }
+      ]
+    },
+    {
+      "name": "with-schemas",
+      "route": "/tweets?limit=25",
+      "concurrency": 8,
+      "medianRps": 1078.5068954193666,
+      "medianP50": 7.19619899999816,
+      "medianP95": 10.394564000001992,
+      "responseBytes": 8581,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 880.0424730336476,
+          "p50": 8.946025999990525,
+          "p95": 13.14413099999365,
+          "requests": 1765,
+          "errors": 0,
+          "bytes": 8581
+        },
+        {
+          "rps": 1078.5068954193666,
+          "p50": 7.19619899999816,
+          "p95": 10.394564000001992,
+          "requests": 2162,
+          "errors": 0,
+          "bytes": 8581
+        },
+        {
+          "rps": 1222.3346997982503,
+          "p50": 6.414970999991056,
+          "p95": 8.491339000000153,
+          "requests": 2450,
+          "errors": 0,
+          "bytes": 8581
+        }
+      ]
+    },
+    {
+      "name": "without-schemas",
+      "route": "/my-feed?limit=25",
+      "concurrency": 8,
+      "medianRps": 867.109685396969,
+      "medianP50": 9.05597200000193,
+      "medianP95": 11.941544000001159,
+      "responseBytes": 8581,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 764.0181872474828,
+          "p50": 10.248799000008148,
+          "p95": 13.615021999998135,
+          "requests": 1532,
+          "errors": 0,
+          "bytes": 8581
+        },
+        {
+          "rps": 867.109685396969,
+          "p50": 9.05597200000193,
+          "p95": 11.941544000001159,
+          "requests": 1740,
+          "errors": 0,
+          "bytes": 8581
+        },
+        {
+          "rps": 947.8685708754904,
+          "p50": 8.29437400000461,
+          "p95": 10.579415000000154,
+          "requests": 1901,
+          "errors": 0,
+          "bytes": 8581
+        }
+      ]
+    },
+    {
+      "name": "with-schemas",
+      "route": "/my-feed?limit=25",
+      "concurrency": 8,
+      "medianRps": 908.5883604547992,
+      "medianP50": 8.664902000004076,
+      "medianP95": 11.360899000006611,
+      "responseBytes": 8581,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 792.588347051477,
+          "p50": 9.881772999986424,
+          "p95": 13.164844999992056,
+          "requests": 1590,
+          "errors": 0,
+          "bytes": 8581
+        },
+        {
+          "rps": 908.5883604547992,
+          "p50": 8.664902000004076,
+          "p95": 11.360899000006611,
+          "requests": 1823,
+          "errors": 0,
+          "bytes": 8581
+        },
+        {
+          "rps": 988.5590179447232,
+          "p50": 7.884386000005179,
+          "p95": 10.353772999995272,
+          "requests": 1982,
+          "errors": 0,
+          "bytes": 8581
+        }
+      ]
+    },
+    {
+      "name": "without-schemas",
+      "route": "/users/1/tweets?limit=25",
+      "concurrency": 8,
+      "medianRps": 652.8063733008564,
+      "medianP50": 11.547233999997843,
+      "medianP95": 17.767184000011184,
+      "responseBytes": 9156,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 588.1755789306401,
+          "p50": 13.178176000001258,
+          "p95": 17.767184000011184,
+          "requests": 1181,
+          "errors": 0,
+          "bytes": 9156
+        },
+        {
+          "rps": 675.2368218741464,
+          "p50": 11.547233999997843,
+          "p95": 15.244672000000719,
+          "requests": 1356,
+          "errors": 0,
+          "bytes": 9156
+        },
+        {
+          "rps": 652.8063733008564,
+          "p50": 11.095776999994996,
+          "p95": 19.408370000004652,
+          "requests": 1312,
+          "errors": 0,
+          "bytes": 9156
+        }
+      ]
+    },
+    {
+      "name": "with-schemas",
+      "route": "/users/1/tweets?limit=25",
+      "concurrency": 8,
+      "medianRps": 628.2412056501097,
+      "medianP50": 11.826178999996046,
+      "medianP95": 18.305577999999514,
+      "responseBytes": 9156,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 584.5695560795934,
+          "p50": 13.360974000010174,
+          "p95": 18.305577999999514,
+          "requests": 1173,
+          "errors": 0,
+          "bytes": 9156
+        },
+        {
+          "rps": 628.2412056501097,
+          "p50": 11.826178999996046,
+          "p95": 19.6918880000012,
+          "requests": 1262,
+          "errors": 0,
+          "bytes": 9156
+        },
+        {
+          "rps": 700.1129846915815,
+          "p50": 10.741448000000673,
+          "p95": 16.51775299999281,
+          "requests": 1406,
+          "errors": 0,
+          "bytes": 9156
+        }
+      ]
+    },
+    {
+      "name": "original-write",
+      "route": "/tweets",
+      "concurrency": 1,
+      "medianRps": 135.79141440680226,
+      "medianP50": 6.935324000005494,
+      "medianP95": 10.990401999995811,
+      "responseBytes": 143,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 135.79141440680226,
+          "p50": 6.935324000005494,
+          "p95": 10.167555000007269,
+          "requests": 272,
+          "errors": 0,
+          "bytes": 143
+        },
+        {
+          "rps": 141.15394360416522,
+          "p50": 6.431753999990178,
+          "p95": 10.990401999995811,
+          "requests": 283,
+          "errors": 0,
+          "bytes": 143
+        },
+        {
+          "rps": 122.10512515156076,
+          "p50": 7.54518200000166,
+          "p95": 12.545081000003847,
+          "requests": 245,
+          "errors": 0,
+          "bytes": 143
+        }
+      ]
+    },
+    {
+      "name": "current-write",
+      "route": "/tweets",
+      "concurrency": 1,
+      "medianRps": 166.93041455590074,
+      "medianP50": 5.916712999998708,
+      "medianP95": 7.222211999993306,
+      "responseBytes": 143,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 160.27868462780626,
+          "p50": 6.146248999997624,
+          "p95": 7.6049459999921964,
+          "requests": 321,
+          "errors": 0,
+          "bytes": 143
+        },
+        {
+          "rps": 172.90191343611514,
+          "p50": 5.67488800000865,
+          "p95": 7.151276999997208,
+          "requests": 346,
+          "errors": 0,
+          "bytes": 143
+        },
+        {
+          "rps": 166.93041455590074,
+          "p50": 5.916712999998708,
+          "p95": 7.222211999993306,
+          "requests": 334,
+          "errors": 0,
+          "bytes": 143
+        }
+      ]
+    },
+    {
+      "name": "original-concurrent-write",
+      "route": "/tweets",
+      "concurrency": 8,
+      "medianRps": 0,
+      "medianP50": null,
+      "medianP95": null,
+      "responseBytes": 0,
+      "errors": 24,
+      "runs": [
+        {
+          "rps": 0,
+          "p50": null,
+          "p95": null,
+          "requests": 8,
+          "errors": 8,
+          "bytes": 0
+        },
+        {
+          "rps": 0,
+          "p50": null,
+          "p95": null,
+          "requests": 8,
+          "errors": 8,
+          "bytes": 0
+        },
+        {
+          "rps": 0,
+          "p50": null,
+          "p95": null,
+          "requests": 8,
+          "errors": 8,
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "name": "current-concurrent-write",
+      "route": "/tweets",
+      "concurrency": 8,
+      "medianRps": 608.4735008760509,
+      "medianP50": 12.809143000020413,
+      "medianP95": 17.74648500001058,
+      "responseBytes": 143,
+      "errors": 0,
+      "runs": [
+        {
+          "rps": 562.9519725431788,
+          "p50": 13.798417999991216,
+          "p95": 20.046046000003116,
+          "requests": 1132,
+          "errors": 0,
+          "bytes": 143
+        },
+        {
+          "rps": 608.4735008760509,
+          "p50": 12.809143000020413,
+          "p95": 17.74648500001058,
+          "requests": 1223,
+          "errors": 0,
+          "bytes": 143
+        },
+        {
+          "rps": 669.1037534480605,
+          "p50": 11.715334000007715,
+          "p95": 15.894937000004575,
+          "requests": 1343,
+          "errors": 0,
+          "bytes": 143
+        }
+      ]
+    }
+  ]
+}

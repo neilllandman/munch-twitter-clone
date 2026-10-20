@@ -38,5 +38,12 @@ TaggedUser.init(
     tableName: 'tagged_users',
     modelName: 'tagged_users',
     timestamps: true,
+    indexes: [
+      {
+        name: 'tagged_users_user_id_tweet_id',
+        unique: true,
+        fields: ['userId', 'tweetId'],
+      },
+    ],
   },
 );

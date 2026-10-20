@@ -2,7 +2,11 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { compare } from 'bcryptjs';
 import { ControllerInterface } from '../shared/interfaces/controller.interface';
 import { AuthService } from './auth.service';
-import { loginRouteOpts, registrationRouteOpts } from './route-options';
+import {
+  loginRouteOpts,
+  registrationRouteOpts,
+  userRouteOpts,
+} from './route-options';
 import { AuthResponse } from './dtos/auth.response';
 import { authMiddleware } from './auth.middleware';
 import { logger } from '../shared/utils/logger';
@@ -18,7 +22,7 @@ export class AuthController implements ControllerInterface {
    */
   async user(req: FastifyRequest, reply: FastifyReply) {
     try {
-      const user = this.authService.getAuthenticatedUser(
+      const user = await this.authService.getAuthenticatedUser(
         req as FastifyRequest<{ Headers: { authorization: string } }>,
       );
       return reply.send(user);
@@ -132,7 +136,7 @@ export class AuthController implements ControllerInterface {
 
     this.app.get(
       '/auth/user',
-      { preValidation: authMiddleware },
+      { preValidation: authMiddleware, ...userRouteOpts },
       this.user.bind(this),
     );
   }

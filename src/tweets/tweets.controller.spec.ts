@@ -3,6 +3,7 @@ import { TweetsService } from './tweets.service';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { JwtToken } from '../auth/dtos/jwt-token';
 import { Tweet } from '../database/models';
+import { TweetQuery } from './dtos/tweet-query';
 
 // filepath: src/tweets/tweets.controller.test.ts
 
@@ -28,7 +29,8 @@ describe('TweetsController', () => {
     it('should return the user feed', async () => {
       const mockRequest = {
         user: { sub: 1 } as JwtToken,
-      } as FastifyRequest;
+        query: { limit: 25 },
+      } as FastifyRequest<{ Querystring: TweetQuery }>;
       const mockFeed = [{ id: 1, content: 'Hello World' }] as Tweet[];
       tweetsService.getFeed.mockResolvedValue(mockFeed);
 
@@ -41,7 +43,9 @@ describe('TweetsController', () => {
 
   describe('getAllTweets', () => {
     it('should return all tweets', async () => {
-      const mockRequest = {} as FastifyRequest;
+      const mockRequest = { query: { limit: 25 } } as FastifyRequest<{
+        Querystring: TweetQuery;
+      }>;
       const mockTweets = [{ id: 1, content: 'Hello World' }];
       tweetsService.getAllTweets.mockResolvedValue(mockTweets as Tweet[]);
 

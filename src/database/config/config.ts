@@ -7,7 +7,7 @@ const connectionOptions: Options = {
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'twitter_clone',
-  logging: console.log,
+  logging: process.env.NODE_ENV !== 'production' ? console.log : false,
 };
 
 // Use `exports =` syntax for compatibility with sequelize-cli

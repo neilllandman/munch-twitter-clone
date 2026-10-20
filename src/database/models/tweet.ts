@@ -37,5 +37,6 @@ Tweet.init(
     tableName: 'tweets',
     modelName: 'Tweet',
     timestamps: true,
+    indexes: [{ name: 'tweets_user_id_id', fields: ['userId', 'id'] }],
   },
 );
