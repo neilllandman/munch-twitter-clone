@@ -115,6 +115,8 @@ describe('API against PostgreSQL', { concurrency: false }, () => {
       '/my-feed',
       '/users/1/tweets',
       '/auth/user',
+      '/search/tweets?q=hello',
+      '/search/users?q=ali',
     ]) {
       assert.equal((await request(path)).status, 401);
       assert.equal((await request(path, { token: 'invalid' })).status, 401);
@@ -315,25 +317,183 @@ describe('API against PostgreSQL', { concurrency: false }, () => {
     }
   });
 
-  it('rolls the index migration back and reapplies it without losing data', async () => {
+  it('searches post words with stemming, AND semantics, and cursor pagination', async () => {
+    const marker = `findme${suffix}`;
+    const contents = [
+      `${marker} Running by the river`,
+      `${marker} She runs every morning`,
+      `${marker} A quiet garden`,
+      `${marker} Run through the garden`,
+      ...Array.from({ length: 28 }, (_, i) => `${marker} Walking outside ${i}`),
+    ];
+    const created = [];
+    for (const content of contents) {
+      const response = await request('/tweets', {
+        account: 'alice',
+        body: { content },
+      });
+      assert.equal(response.status, 201);
+      created.push(response.body);
+    }
+    const search = async (q, extra = '') => {
+      const response = await request(
+        `/search/tweets?q=${encodeURIComponent(q)}${extra}`,
+        { account: 'bob' },
+      );
+      assert.equal(response.status, 200, JSON.stringify(response.body));
+      return response.body;
+    };
+    const expected = [created[3].id, created[1].id, created[0].id];
+    assert.deepEqual(
+      (await search(`  ${marker} RUN!!!  `)).map((tweet) => tweet.id),
+      expected,
+    );
+    assert.deepEqual(
+      (await search(`${marker} running garden`)).map((tweet) => tweet.id),
+      [created[3].id],
+    );
+    const first = await search(`${marker} run`, '&limit=2');
+    const second = await search(
+      `${marker} run`,
+      `&limit=2&beforeId=${first.at(-1).id}`,
+    );
+    assert.deepEqual(
+      [...first, ...second].map((tweet) => tweet.id),
+      expected,
+    );
+    assert.equal(first[0].user.username, accounts.alice.username);
+    assert.equal(first[0].user.password, undefined);
+    const all = await search(marker, '&limit=100');
+    assert.deepEqual(
+      all.map((tweet) => tweet.id),
+      created.map((tweet) => tweet.id).reverse(),
+    );
+    assert.equal((await search(marker)).length, 25);
+    for (const q of [
+      'the and of',
+      '!!!',
+      `${marker} absentword`,
+      "zzzinjectionprobe' OR 1=1 --",
+    ]) {
+      assert.deepEqual(await search(q), []);
+    }
+  });
+
+  it('searches usernames by a literal case-insensitive prefix without exposing private fields', async () => {
+    const prefix = `seek_${suffix}_`;
+    const usernames = [
+      `${prefix}Alice`,
+      `${prefix}ALICIA`,
+      `${prefix}100%Real`,
+      `${prefix}100xReal`,
+      `${prefix}!a`,
+      `${prefix}!!a`,
+      `${prefix}\\a`,
+      ...Array.from({ length: 30 }, (_, i) => `${prefix}person${i}`),
+      `seekX${suffix}_Alice`,
+    ];
+    const inserted = await db.query(
+      `INSERT INTO users (username, email, password, "createdAt", "updatedAt")
+      SELECT name, name || '@example.org', 'private-hash', NOW(), NOW() FROM unnest($1::text[]) AS name
+      RETURNING id, username`,
+      [usernames],
+    );
+    const search = async (q, extra = '') => {
+      const response = await request(
+        `/search/users?q=${encodeURIComponent(q)}${extra}`,
+        { account: 'alice' },
+      );
+      assert.equal(response.status, 200, JSON.stringify(response.body));
+      for (const user of response.body)
+        assert.deepEqual(Object.keys(user).sort(), ['id', 'username']);
+      return response.body;
+    };
+    const matching = (q) =>
+      inserted.rows
+        .filter((row) => row.username.toLowerCase().startsWith(q.toLowerCase()))
+        .sort((a, b) => b.id - a.id);
+    for (const q of [
+      `${prefix}ALI`,
+      `${prefix}100%`,
+      `${prefix}!`,
+      `${prefix}!!`,
+      `${prefix}\\`,
+    ]) {
+      assert.deepEqual(await search(`  ${q}  `), matching(q));
+    }
+    const expected = matching(prefix);
+    assert.equal((await search(prefix)).length, 25);
+    assert.deepEqual(await search(prefix, '&limit=100'), expected);
+    const seen = [];
+    let beforeId;
+    for (;;) {
+      const page = await search(
+        prefix,
+        `&limit=4${beforeId ? `&beforeId=${beforeId}` : ''}`,
+      );
+      if (!page.length) break;
+      seen.push(...page);
+      beforeId = page.at(-1).id;
+    }
+    assert.deepEqual(seen, expected);
+    for (const q of ['licia', '%', "' OR 1=1 --"])
+      assert.deepEqual(await search(q), []);
+  });
+
+  it('rejects invalid search queries and pagination', async () => {
+    for (const path of ['/search/tweets', '/search/users']) {
+      for (const query of [
+        '',
+        '?q=',
+        '?q=%20%09',
+        `?q=${'a'.repeat(101)}`,
+        '?q=hello&limit=101',
+        '?q=hello&beforeId=-1',
+      ]) {
+        assert.equal(
+          (await request(`${path}${query}`, { account: 'alice' })).status,
+          400,
+        );
+      }
+    }
+  });
+
+  it('rolls search indexes back and reapplies them while retaining feed indexes and data', async () => {
     const beforeCount = await db.query('SELECT COUNT(*) FROM tweets');
     migrate('db:migrate:undo');
     let indexes = await db.query(
-      `SELECT indexname FROM pg_indexes WHERE tablename IN ('tweets', 'tagged_users')`,
+      `SELECT indexname FROM pg_indexes WHERE tablename IN ('tweets', 'tagged_users', 'users')`,
     );
     let names = indexes.rows.map((row) => row.indexname);
-    assert(names.includes('tagged_users_user_id'));
-    assert(!names.includes('tweets_user_id_id'));
-    assert(!names.includes('tagged_users_user_id_tweet_id'));
+    assert(names.includes('tweets_user_id_id'));
+    assert(names.includes('tagged_users_user_id_tweet_id'));
+    assert(!names.includes('tweets_content_search_gin'));
+    assert(!names.includes('users_username_prefix'));
+    const legacy = await db.query(
+      `INSERT INTO tweets ("userId", content, "createdAt", "updatedAt")
+      VALUES ($1, 'Existing searchable migration fixture', NOW(), NOW()) RETURNING id`,
+      [accounts.alice.user.id],
+    );
     migrate('db:migrate');
     indexes = await db.query(
-      `SELECT indexname FROM pg_indexes WHERE tablename IN ('tweets', 'tagged_users')`,
+      `SELECT indexname FROM pg_indexes WHERE tablename IN ('tweets', 'tagged_users', 'users')`,
     );
     names = indexes.rows.map((row) => row.indexname);
     assert(names.includes('tweets_user_id_id'));
     assert(names.includes('tagged_users_user_id_tweet_id'));
     assert(names.includes('tagged_users_tweet_id'));
     assert(!names.includes('tagged_users_user_id'));
+    assert(names.includes('tweets_content_search_gin'));
+    assert(names.includes('users_username_prefix'));
+    const response = await request('/search/tweets?q=searchable%20migration', {
+      account: 'alice',
+    });
+    assert.equal(response.status, 200);
+    assert.deepEqual(
+      response.body.map((tweet) => tweet.id),
+      [legacy.rows[0].id],
+    );
+    await db.query('DELETE FROM tweets WHERE id = $1', [legacy.rows[0].id]);
     assert.deepEqual(
       (await db.query('SELECT COUNT(*) FROM tweets')).rows,
       beforeCount.rows,

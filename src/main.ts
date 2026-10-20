@@ -11,6 +11,7 @@ import { AuthController } from './auth/auth.controller';
 import { sequelize } from './database/connection';
 import { AppController } from './app.controller';
 import { TweetsController } from './tweets/tweets.controller';
+import { SearchController } from './search/search.controller';
 
 // Load environment variables from .env file
 dotenvConfig({ path: '.env' });
@@ -42,6 +43,7 @@ export async function bootstrap() {
   await new AppController(app).register();
   await new AuthController(app).register();
   await new TweetsController(app).register();
+  await new SearchController(app).register();
 
   // start server
   try {

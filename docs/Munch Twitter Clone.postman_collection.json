@@ -206,6 +206,124 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Search tweets",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{BEARER_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/search/tweets?q=running&limit=25",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"search",
+						"tweets"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "running"
+						},
+						{
+							"key": "limit",
+							"value": "25"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search users",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{BEARER_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/search/users?q=ali&limit=25",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"search",
+						"users"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "ali"
+						},
+						{
+							"key": "limit",
+							"value": "25"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search tweets - next page",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{BEARER_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/search/tweets?q=running&limit=25&beforeId=76",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"search",
+						"tweets"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "running"
+						},
+						{
+							"key": "limit",
+							"value": "25"
+						},
+						{
+							"key": "beforeId",
+							"value": "76"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"event": [
