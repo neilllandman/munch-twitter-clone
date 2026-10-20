@@ -2,7 +2,11 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { ControllerInterface } from '../shared/interfaces/controller.interface';
 import { authMiddleware } from '../auth/auth.middleware';
 import { JwtToken } from '../auth/dtos/jwt-token';
-import { createTweetRouteOpts, tweetQueryRouteOpts } from './route-options';
+import {
+  createTweetRouteOpts,
+  tweetQueryRouteOpts,
+  userTweetQueryRouteOpts,
+} from './route-options';
 import { TweetQuery } from './dtos/tweet-query';
 
 import { logger } from '../shared/utils/logger';
@@ -118,7 +122,7 @@ export class TweetsController implements ControllerInterface {
     // Need to use `bind` to ensure `this` context is correct
     this.app.get(
       '/users/:id/tweets',
-      { preValidation: authMiddleware, ...tweetQueryRouteOpts },
+      { preValidation: authMiddleware, ...userTweetQueryRouteOpts },
       this.getUserTweets.bind(this),
     );
     this.app.get(

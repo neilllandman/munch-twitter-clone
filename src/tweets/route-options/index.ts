@@ -1,7 +1,14 @@
 import { RouteShorthandOptions } from 'fastify';
+import { errorResponses } from '../../shared/schemas/response';
+import {
+  createdTweetResponseSchema,
+  tweetListResponseSchema,
+  userTweetsResponseSchema,
+} from '../response-schemas';
 
 export const tweetQueryRouteOpts: RouteShorthandOptions = {
   schema: {
+    response: { 200: tweetListResponseSchema, ...errorResponses },
     querystring: {
       type: 'object',
       properties: {
@@ -13,8 +20,17 @@ export const tweetQueryRouteOpts: RouteShorthandOptions = {
   },
 };
 
+export const userTweetQueryRouteOpts: RouteShorthandOptions = {
+  ...tweetQueryRouteOpts,
+  schema: {
+    ...tweetQueryRouteOpts.schema,
+    response: { 200: userTweetsResponseSchema, ...errorResponses },
+  },
+};
+
 export const createTweetRouteOpts: RouteShorthandOptions = {
   schema: {
+    response: { 201: createdTweetResponseSchema, ...errorResponses },
     body: {
       type: 'object',
       properties: {

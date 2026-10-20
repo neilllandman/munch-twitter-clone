@@ -1,7 +1,21 @@
 import { RouteShorthandOptions } from 'fastify';
+import { errorResponses } from '../../shared/schemas/response';
+import { authResponseSchema, userResponseSchema } from '../response-schemas';
+
+const authResponses = { 200: authResponseSchema, ...errorResponses };
+
+export const userRouteOpts: RouteShorthandOptions = {
+  schema: {
+    response: {
+      200: { ...userResponseSchema, nullable: true },
+      ...errorResponses,
+    },
+  },
+};
 
 export const loginRouteOpts: RouteShorthandOptions = {
   schema: {
+    response: authResponses,
     body: {
       type: 'object',
       properties: {
@@ -16,6 +30,7 @@ export const loginRouteOpts: RouteShorthandOptions = {
 
 export const registrationRouteOpts: RouteShorthandOptions = {
   schema: {
+    response: authResponses,
     body: {
       type: 'object',
       properties: {
