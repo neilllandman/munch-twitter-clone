@@ -110,7 +110,7 @@ This command will add users, tweets and tagged users.
 
 A postman collection is included under docs [here](https://github.com/neilllandman/munch-twitter-clone/blob/main/docs/Munch%20Twitter%20Clone.postman_collection.json).
 
-```ts
+```text
 /
 ├── healthz (GET, HEAD)
 ├── auth/
@@ -121,8 +121,10 @@ A postman collection is included under docs [here](https://github.com/neilllandm
 │   └── :id
 │       └── /tweets (GET, HEAD)
 ├── my-feed (GET, HEAD)
-└── tweets (GET, HEAD, POST)```
-
+├── tweets (GET, HEAD, POST)
+└── search/
+    ├── tweets (GET, HEAD)
+    └── users (GET, HEAD)
 ```
 
 ### Feed pagination
@@ -138,6 +140,31 @@ are returned. Continue until an empty page is returned.
 Run `npm run db:migrate:dev` to apply the feed indexes to an existing database.
 The new unique mention index requires existing `(userId, tweetId)` pairs to be unique.
 SQL queries are logged only when `NODE_ENV !== 'production'`.
+
+### Search
+
+Both search endpoints require a bearer token and a `q` parameter of 1–100
+characters. Surrounding whitespace is trimmed; missing or whitespace-only
+queries return `400`.
+
+- `GET /search/tweets?q=running`: English word search with stemming, so `run`
+  can match `running`. All searchable words must match, regardless of order.
+  Common English stop words are ignored. Queries containing only stop words or
+  punctuation return `[]`; phrases, relevance ranking, and partial-word matching
+  are not supported. Results use the existing tweet-list response shape.
+- `GET /search/users?q=ali`: case-insensitive username prefix search, matching
+  `alice` and `alicia`. `%`, `_`, and `!` in input are literal characters, not
+  search operators. Results expose only `id` and `username`.
+
+Results are arrays sorted by descending ID (newer posts/accounts first). Both
+endpoints accept `limit` (1–100, default 25) and an exclusive `beforeId` cursor.
+Keep the same `q` when loading additional pages, for example:
+`GET /search/tweets?q=running&limit=25&beforeId=76`. No matches return `200` with `[]`.
+
+Apply `npm run db:migrate:dev` before deploying search. The migration indexes
+existing posts and usernames and maintains the indexes automatically for new
+data. PostgreSQL integration tests cover search and migration rollback as well
+as existing API behavior.
 
 ## Future considerations
 - Expire JWT tokens and add refresh functionality
