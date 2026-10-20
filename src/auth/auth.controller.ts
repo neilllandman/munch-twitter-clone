@@ -18,7 +18,7 @@ export class AuthController implements ControllerInterface {
    */
   async user(req: FastifyRequest, reply: FastifyReply) {
     try {
-      const user = this.authService.getAuthenticatedUser(
+      const user = await this.authService.getAuthenticatedUser(
         req as FastifyRequest<{ Headers: { authorization: string } }>,
       );
       return reply.send(user);

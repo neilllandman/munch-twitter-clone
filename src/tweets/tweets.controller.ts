@@ -2,7 +2,8 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { ControllerInterface } from '../shared/interfaces/controller.interface';
 import { authMiddleware } from '../auth/auth.middleware';
 import { JwtToken } from '../auth/dtos/jwt-token';
-import { createTweetRouteOpts } from './route-options';
+import { createTweetRouteOpts, tweetQueryRouteOpts } from './route-options';
+import { TweetQuery } from './dtos/tweet-query';
 
 import { logger } from '../shared/utils/logger';
 import { TweetsService } from './tweets.service';
@@ -18,7 +19,10 @@ export class TweetsController implements ControllerInterface {
    * Returns the tweets of the currently authenticated user including the
    * tweets of the users where the authenticated user was tagged in.
    */
-  async myFeed(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+  async myFeed(
+    request: FastifyRequest<{ Querystring: TweetQuery }>,
+    reply: FastifyReply,
+  ): Promise<void> {
     const token: JwtToken = request.user as JwtToken;
     const id = token.sub;
 
@@ -30,7 +34,7 @@ export class TweetsController implements ControllerInterface {
    * Returns all tweets in the database.
    */
   async getAllTweets(
-    request: FastifyRequest,
+    request: FastifyRequest<{ Querystring: TweetQuery }>,
     reply: FastifyReply,
   ): Promise<void> {
     try {
@@ -48,7 +52,10 @@ export class TweetsController implements ControllerInterface {
    * Get tweets of a specific user.
    */
   async getUserTweets(
-    request: FastifyRequest<{ Params: { id: number } }>,
+    request: FastifyRequest<{
+      Params: { id: number };
+      Querystring: TweetQuery;
+    }>,
     reply: FastifyReply,
   ): Promise<void> {
     const userId = request.params.id;
@@ -111,17 +118,17 @@ export class TweetsController implements ControllerInterface {
     // Need to use `bind` to ensure `this` context is correct
     this.app.get(
       '/users/:id/tweets',
-      { preValidation: authMiddleware },
+      { preValidation: authMiddleware, ...tweetQueryRouteOpts },
       this.getUserTweets.bind(this),
     );
     this.app.get(
       '/my-feed',
-      { preValidation: authMiddleware },
+      { preValidation: authMiddleware, ...tweetQueryRouteOpts },
       this.myFeed.bind(this),
     );
     this.app.get(
       '/tweets',
-      { preValidation: authMiddleware },
+      { preValidation: authMiddleware, ...tweetQueryRouteOpts },
       this.getAllTweets.bind(this),
     );
     this.app.post(

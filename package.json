@@ -12,6 +12,7 @@
     "start": "node dist/main.js",
     "start:dev": "nodemon --signal SIGINT | pino-pretty",
     "test": "jest",
+    "test:integration": "npm run build && node --test test/integration/*.test.cjs",
     "sequelize-dev": "sequelize-cli --config src/database/config/config.js",
     "db:migrate": "sequelize-cli db:migrate",
     "db:migrate:dev": "npm run build && npm run db:migrate",

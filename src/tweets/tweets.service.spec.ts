@@ -1,6 +1,6 @@
 import { TweetsService } from './tweets.service';
 import { Tweet, User, TaggedUser } from '../database/models';
-import { Op } from 'sequelize';
+import { literal, Op } from 'sequelize';
 
 jest.mock('../database/models');
 
@@ -28,6 +28,8 @@ describe('TweetsService', () => {
       const result = await tweetsService.getAllTweets({} as any);
 
       expect(Tweet.findAll).toHaveBeenCalledWith({
+        where: {},
+        limit: 25,
         attributes: ['id', 'content', 'createdAt', 'updatedAt'],
         order: [['id', 'DESC']],
         include: [
@@ -39,6 +41,40 @@ describe('TweetsService', () => {
         ],
       });
       expect(result).toEqual(mockTweets);
+    });
+  });
+
+  describe('pagination', () => {
+    it.each(['all', 'user', 'feed'])(
+      'limits the %s timeline to tweets older than the cursor',
+      async (timeline) => {
+        (Tweet.findAll as jest.Mock).mockResolvedValue([]);
+        const request = { query: { beforeId: 76, limit: 10 } } as any;
+        if (timeline === 'all') await tweetsService.getAllTweets(request);
+        if (timeline === 'user') await tweetsService.getUserTweets(1, request);
+        if (timeline === 'feed') await tweetsService.getFeed(1, request);
+
+        expect(Tweet.findAll).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: expect.objectContaining({ id: { [Op.lt]: 76 } }),
+            limit: 10,
+            order: [['id', 'DESC']],
+          }),
+        );
+      },
+    );
+
+    it('limits user tweets before fetching their mentions', async () => {
+      (Tweet.findAll as jest.Mock).mockResolvedValue([]);
+      await tweetsService.getUserTweets(1, { query: {} } as any);
+
+      expect(Tweet.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId: 1 },
+          limit: 25,
+          include: [{ model: TaggedUser, as: 'taggedUsers', separate: true }],
+        }),
+      );
     });
   });
 
@@ -59,13 +95,21 @@ describe('TweetsService', () => {
 
       expect(Tweet.findAll).toHaveBeenCalledWith({
         where: {
-          [Op.or]: [{ userId: 1 }, { [`$taggedUsers.userId$`]: 1 }],
+          [Op.or]: [
+            { userId: 1 },
+            literal(`EXISTS (
+            SELECT 1 FROM "tagged_users" AS "mention"
+            WHERE "mention"."tweetId" = "Tweet"."id"
+              AND "mention"."userId" = $feedUserId
+          )`),
+          ],
         },
+        bind: { feedUserId: 1 },
+        limit: 25,
         attributes: ['id', 'content', 'createdAt', 'updatedAt'],
         order: [['id', 'DESC']],
         include: [
           { model: User, as: 'user', attributes: ['id', 'username', 'email'] },
-          { model: TaggedUser, as: 'taggedUsers', attributes: [] },
         ],
       });
       expect(result).toEqual(mockFeed);
@@ -105,6 +149,7 @@ describe('TweetsService', () => {
           username: ['user'],
         },
         attributes: ['id'],
+        transaction: mockTransaction,
       });
       expect(TaggedUser.bulkCreate).toHaveBeenCalledWith(mockTaggedUsers, {
         transaction: mockTransaction,
