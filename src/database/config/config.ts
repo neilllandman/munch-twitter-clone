@@ -1,13 +1,12 @@
 import { Options } from 'sequelize';
+import { environment } from '../../config/environment';
 
 const connectionOptions: Options = {
   dialect: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT) || 5432,
-  username: process.env.DB_USERNAME || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  database: process.env.DB_NAME || 'twitter_clone',
-  logging: process.env.NODE_ENV !== 'production' ? console.log : false,
+  ...environment.database,
+  logging: environment.production ? false : console.log,
+  pool: { acquire: 5000 },
+  dialectOptions: { connectionTimeoutMillis: 5000 },
 };
 
 // Use `exports =` syntax for compatibility with sequelize-cli
