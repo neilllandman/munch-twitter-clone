@@ -15,6 +15,11 @@ The docker compose file includes a postgreSQL database server and should work ou
 docker compose up
 ```
 
+Compose waits for PostgreSQL to become healthy before it runs migrations and
+starts the API. Stop with `docker compose stop twitter-clone`; the API finishes
+active requests and closes its database connections before exiting. The
+container allows 15 seconds for shutdown.
+
 ### Using npm (node v22 or higher required)
 
 If you prefer not using docker, set up the .env file correctly and use npm.
@@ -42,6 +47,20 @@ cp .env.example .env
  ```sh
  npm run start:dev
 ```
+
+The development command watches `src` and restarts the API after changes.
+For pretty local logs, run `npm run start:dev` as above; Compose emits JSON logs
+that can be viewed with `docker compose logs -f twitter-clone`.
+
+### Configuration and lifecycle
+
+Configuration is loaded from `.env`, with existing environment variables taking
+precedence. `APP_HOST` defaults to `0.0.0.0`, `APP_PORT` to `3000`, and
+`APP_LOG_LEVEL` to `debug`. Invalid ports and log levels fail at startup before
+connecting to PostgreSQL. The API retries database connections for up to 30
+seconds, then exits with an error. `SIGINT` and `SIGTERM` both start a graceful
+shutdown; if it has not finished after five seconds, the process exits with an
+error. Set `APP_PORT=0` to use an available port in tests.
 
 
 ### Check if service is reachable:

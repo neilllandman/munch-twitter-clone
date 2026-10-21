@@ -58,6 +58,38 @@ async function request(path, { account, body, token } = {}) {
   return { status: response.status, body: await response.json() };
 }
 
+async function startChild(
+  extraEnv = {},
+  command = process.execPath,
+  args = ['dist/main.js'],
+) {
+  const child = spawn(command, args, {
+    env: { ...env, APP_PORT: '0', ...extraEnv },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  let output = '';
+  child.stdout.on('data', (chunk) => {
+    output += chunk.toString();
+  });
+  child.stderr.on('data', (chunk) => {
+    output += chunk.toString();
+  });
+  try {
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const address = output.match(
+        /Server listening at (http:\/\/127\.0\.0\.1:\d+)/,
+      );
+      if (address) return { child, address: address[1], output: () => output };
+      if (child.exitCode !== null) throw new Error(output);
+      await delay(100);
+    }
+    throw new Error(`Child did not start:\n${output}`);
+  } catch (error) {
+    child.kill('SIGKILL');
+    throw error;
+  }
+}
+
 before(
   async () => {
     await db.connect();
@@ -105,6 +137,93 @@ after(async () => {
 });
 
 describe('API against PostgreSQL', { concurrency: false }, () => {
+  it('imports the entry point without starting the server or installing signal handlers', () => {
+    const result = spawnSync(
+      process.execPath,
+      [
+        '-e',
+        `const before = [process.listenerCount('SIGINT'), process.listenerCount('SIGTERM')]; require('./dist/main'); const after = [process.listenerCount('SIGINT'), process.listenerCount('SIGTERM')]; if (String(before) !== String(after)) process.exitCode = 1;`,
+      ],
+      { env, encoding: 'utf8', timeout: 10000 },
+    );
+    assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  });
+
+  it('fails on invalid configuration before connecting or listening', () => {
+    const result = spawnSync(process.execPath, ['dist/main.js'], {
+      env: { ...env, APP_PORT: 'not-a-port', DB_PASSWORD: 'private-value' },
+      encoding: 'utf8',
+      timeout: 10000,
+    });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /APP_PORT/);
+    assert.doesNotMatch(result.stderr, /private-value/);
+    assert.doesNotMatch(result.stdout, /Server listening/);
+  });
+
+  for (const signal of ['SIGINT', 'SIGTERM']) {
+    it(`drains and closes database connections on ${signal}`, async () => {
+      const applicationName = `munch_lifecycle_${signal}_${suffix}`;
+      const { child, address, output } = await startChild(
+        { PGAPPNAME: applicationName },
+        signal === 'SIGTERM' ? 'sh' : process.execPath,
+        signal === 'SIGTERM' ? ['run.sh'] : ['dist/main.js'],
+      );
+      try {
+        const response = await fetch(`${address}/healthz`);
+        assert.deepEqual(await response.json(), { status: 'ok' });
+        const connections = await db.query(
+          'SELECT pid FROM pg_stat_activity WHERE application_name = $1',
+          [applicationName],
+        );
+        assert(connections.rowCount > 0, output());
+        const stopped = once(child, 'exit');
+        child.kill(signal);
+        const [code, exitSignal] = await stopped;
+        assert.equal(code, 0, output());
+        assert.equal(exitSignal, null, output());
+        assert.match(output(), /Application shutdown complete/);
+        const remaining = await db.query(
+          'SELECT pid FROM pg_stat_activity WHERE application_name = $1',
+          [applicationName],
+        );
+        assert.equal(remaining.rowCount, 0);
+      } finally {
+        if (child.exitCode === null) child.kill('SIGKILL');
+      }
+    });
+  }
+
+  it('cancels a database retry promptly on SIGTERM', async () => {
+    const child = spawn(process.execPath, ['dist/main.js'], {
+      env: { ...env, APP_PORT: '0', DB_PORT: '1' },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let output = '';
+    child.stdout.on('data', (chunk) => {
+      output += chunk.toString();
+    });
+    child.stderr.on('data', (chunk) => {
+      output += chunk.toString();
+    });
+    try {
+      for (let attempt = 0; attempt < 100; attempt++) {
+        if (output.includes('Database unavailable; retrying startup')) break;
+        if (child.exitCode !== null) throw new Error(output);
+        await delay(100);
+      }
+      assert.match(output, /Database unavailable; retrying startup/);
+      const stopped = once(child, 'exit');
+      child.kill('SIGTERM');
+      const [code, exitSignal] = await stopped;
+      assert.equal(code, 0, output);
+      assert.equal(exitSignal, null, output);
+      assert.doesNotMatch(output, /Server listening/);
+    } finally {
+      if (child.exitCode === null) child.kill('SIGKILL');
+    }
+  });
+
   it('reports health and rejects missing or invalid authentication', async () => {
     assert.deepEqual(await request('/healthz'), {
       status: 200,

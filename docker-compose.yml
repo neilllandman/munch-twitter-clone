@@ -1,5 +1,10 @@
 services:
   twitter-clone:
+    init: true
+    stop_grace_period: 15s
+    depends_on:
+      postgres-service:
+        condition: service_healthy
     user: node
     build:
       context: .
@@ -12,7 +17,7 @@ services:
     ports:
       - '3000:3000'
     stdin_open: true
-    command: "sh -c 'npm i && npm run db:migrate:dev && npm run start:dev'"
+    command: "sh -c 'npm ci && npm run db:migrate:dev && exec ./node_modules/.bin/nodemon --signal SIGTERM'"
     environment:
       DB_HOST: postgres-service
       DB_PORT: 5432
@@ -22,6 +27,13 @@ services:
   postgres-service:
     image: postgres:17.4
     restart: always
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 5s
     shm_size: 128mb
     environment:
       POSTGRES_PASSWORD: postgres

@@ -1,5 +1,6 @@
 import pino from 'pino';
+import { environment } from '../../config/environment';
 
 export const logger = pino({
-  level: process.env.APP_LOG_LEVEL || 'debug',
+  level: environment.logLevel,
 });

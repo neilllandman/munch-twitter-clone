@@ -1,72 +1,26 @@
-// import FastifyFormBody from '@fastify/formbody';
-// import FastifyMultiPart from '@fastify/multipart';
-// import fastifyStatic from '@fastify/static';
-import { config as dotenvConfig } from 'dotenv';
-import fastify, { FastifyInstance } from 'fastify';
-import { readFileSync } from 'fs';
-import { resolve as resolvePath } from 'path';
-import FastifyJwt from '@fastify/jwt';
-import { logger } from './shared/utils/logger';
-import { AuthController } from './auth/auth.controller';
+import { createApp } from './app';
+import { environment } from './config/environment';
 import { sequelize } from './database/connection';
-import { AppController } from './app.controller';
-import { TweetsController } from './tweets/tweets.controller';
-import { SearchController } from './search/search.controller';
+import { ApplicationLifecycle } from './lifecycle';
+import { logger } from './shared/utils/logger';
 
-// Load environment variables from .env file
-dotenvConfig({ path: '.env' });
-
-export async function bootstrap() {
-  const app: FastifyInstance = fastify({
-    logger: true,
-  });
-
-  app.register(FastifyJwt, {
-    // For production, use AWS secrets manager or similar to store secrets
-    // and load them at runtime
-    secret: {
-      private: readFileSync(resolvePath(__dirname, '..', 'private.dev.pem')),
-      public: readFileSync(resolvePath(__dirname, '..', 'public.dev.pem')),
+export function bootstrap() {
+  const lifecycle = new ApplicationLifecycle({
+    createApp,
+    database: sequelize,
+    config: environment,
+    logger,
+    setExitCode: (code) => {
+      process.exitCode = code;
     },
+    forceExit: (code) => process.exit(code),
   });
-
-  // connect to the database
-  try {
-    await sequelize.authenticate();
-    logger.debug('Database connection established successfully.');
-  } catch (error) {
-    logger.error({ err: error }, 'Unable to connect to the database');
-    process.exit(1);
-  }
-
-  // register routes
-  await new AppController(app).register();
-  await new AuthController(app).register();
-  await new TweetsController(app).register();
-  await new SearchController(app).register();
-
-  // start server
-  try {
-    await app.listen({
-      port: Number(process.env.APP_PORT) || 3000,
-      host: process.env.APP_HOST || '0.0.0.0',
-    });
-    logger.info(app.printRoutes());
-  } catch (err) {
-    logger.error(err);
-    process.exit(1);
-  }
+  const shutdown = () => {
+    void lifecycle.stop();
+  };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+  return { lifecycle, started: lifecycle.start() };
 }
 
-process.on('exit', (exitCode: number) => {
-  if (exitCode !== 0) {
-    logger.error(`program exited with error code ${exitCode}`);
-  }
-});
-
-process.on('SIGINT', () => {
-  logger.debug(`Received SIGINT.`);
-  process.exit(0);
-});
-
-bootstrap();
+if (require.main === module) bootstrap();
